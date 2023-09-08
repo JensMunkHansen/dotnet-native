@@ -1,18 +1,24 @@
-name: amd64 Windows
+name: amd64 TFM
 
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
   # Building using the github runner environement directly.
-  visual-studio:
+  msvc:
     runs-on: windows-latest
+    strategy:
+       matrix:
+         lang: [7.3, 8.0, 9.0]
+         build: [46, 461, 462, 48, CORE_31, STD_20, STD_21, 6, 7]
+         example: [net48, netstandard2.0, netstandard2.1, netcoreapp3.1, net5.0, net6.0, net7.0]
+       fail-fast: false
     steps:
     - uses: actions/checkout@v3
-    - name: Install SWIG 4.0.2
+    - name: Install SWIG 4.1.1
       run: |
-        (New-Object System.Net.WebClient).DownloadFile("http://prdownloads.sourceforge.net/swig/swigwin-4.0.2.zip","swigwin-4.0.2.zip");
-        Expand-Archive .\swigwin-4.0.2.zip .;
-        echo "$((Get-Item .).FullName)/swigwin-4.0.2" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        (New-Object System.Net.WebClient).DownloadFile("http://prdownloads.sourceforge.net/swig/swigwin-4.1.1.zip","swigwin-4.1.1.zip");
+        Expand-Archive .\swigwin-4.1.1.zip .;
+        echo "$((Get-Item .).FullName)/swigwin-4.1.1" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
     - name: Check swig
       run: swig -version
       # Install .NET SDKs
@@ -29,7 +35,7 @@ jobs:
     - name: Check cmake
       run: cmake --version
     - name: Configure
-      run: cmake -S. -Bbuild -G "Visual Studio 17 2022" -DCMAKE_CONFIGURATION_TYPES=Release -DCMAKE_INSTALL_PREFIX=install
+      run: cmake -S. -Bbuild -DDOTNET_LANG="${{ matrix.lang }}" -DUSE_DOTNET_${{ matrix.build }}=ON -DEXAMPLE_TFM="${{ matrix.example }}" -G "Visual Studio 17 2022" -DCMAKE_CONFIGURATION_TYPES=Release -DCMAKE_INSTALL_PREFIX=install
     - name: Build
       run: cmake --build build --config Release --target ALL_BUILD -v
     - name: Test

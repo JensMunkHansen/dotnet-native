@@ -1,5 +1,7 @@
 # This file is just an orchestration
 cmake_minimum_required(VERSION 3.18)
+
+# UseSWIG use library name conventions for CSharp language.
 if (POLICY CMP0122)
   cmake_policy(SET CMP0122 NEW)
 endif()
@@ -61,6 +63,9 @@ else()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/${OutputConfig}/${CMAKE_INSTALL_BINDIR})
   endforeach()
 endif()
+if(BUILD_SHARED_LIBS AND MSVC)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 message(STATUS "Build shared libs: ${BUILD_SHARED_LIBS}")
 
 # Disable CTest targets
@@ -77,8 +82,7 @@ endif()
 
 # Language Version
 # see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version
-set(DOTNET_LANG "8.0" CACHE STRING "Specify the C# language version (default
-\"8.0\")")
+set(DOTNET_LANG "8.0" CACHE STRING "Specify the C# language version (default \"8.0\")")
 message(STATUS ".Net C# language version: ${DOTNET_LANG}")
 
 # Targeted Framework Moniker
@@ -104,12 +108,15 @@ message(STATUS ".Net: Use .Net Framework 2.1 support: ${USE_DOTNET_STD_21}")
 if(APPLE AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)")
   set(USE_DOTNET_CORE_31 OFF)
 else()
-  option(USE_DOTNET_CORE_31 "Use .Net Core 3.1 LTS support" ON)
+  option(USE_DOTNET_CORE_31 "Use .Net Core 3.1 LTS support" OFF)
 endif()
 message(STATUS ".Net: Use .Net Core 3.1 LTS support: ${USE_DOTNET_CORE_31}")
 
 option(USE_DOTNET_6 "Use .Net 6 LTS support" ON)
 message(STATUS ".Net: Use .Net 6 LTS support: ${USE_DOTNET_6}")
+
+option(USE_DOTNET_7 "Use .Net 7.0 support" OFF)
+message(STATUS ".Net: Use .Net 7.0 support: ${USE_DOTNET_7}")
 include(dotnet)
 
 add_subdirectory(tests)
